@@ -19,6 +19,7 @@ public class ClientMain {
 	static int xDisplay, yDisplay;
 	static long tickRate = 60;
 	static Tracker tracker = new Tracker();
+	static boolean running;
 	public static void main(String[] args){
 		try (
 			// The socket itself
@@ -30,15 +31,10 @@ public class ClientMain {
 		){
 			sendScreenInfo(out);
 			gui = new Gui(new MultiplayerHandler(out,in), new Location(xDisplay, yDisplay));
-			tracker.addEntity("tick");
-			tracker.addEntity("render");
-			tracker.addEntity("update");
-			tracker.addEntity("polling");
-			tracker.setNotifyPeriod(5);
-			tracker.runInBackGround();
-			while(true){
+			trackerSetup();
+			running = true;
+			while(running){
 				if(readInfo(in)){
-					System.out.println("behind");
 					tracker.giveStartTime("tick");
 					gui.tick();
 					tracker.giveEndTime("tick");
@@ -49,11 +45,18 @@ public class ClientMain {
 					gui.update();
 					tracker.giveEndTime("update");
 				}
-				else System.out.println("ahead");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	private static void trackerSetup(){
+		tracker.addEntity("tick");
+		tracker.addEntity("render");
+		tracker.addEntity("update");
+		tracker.addEntity("polling");
+		tracker.setNotifyPeriod(5);
+		tracker.runInBackGround();
 	}
 	private static void sendScreenInfo(PrintWriter out){
 		out.println("screen info");
@@ -64,7 +67,7 @@ public class ClientMain {
 	private static boolean readInfo(BufferedReader in){
 		tracker.giveStartTime("polling");
 		try{
-			while(in.ready())switch(in.readLine()){
+			while(in.ready())switch(in.readLine().toLowerCase()){
 			case "quad":
 				quad = initializeQuad();
 				for(int i = 0; i < quadInfoLines; i++){
@@ -75,6 +78,9 @@ public class ClientMain {
 			case "end":
 				tracker.giveEndTime("polling");
 				return true;
+			case "load texture": case "loadtexture":
+				gui.loadTexture(in.readLine());
+				break;
 			}
 		}
 		catch(IOException e){
