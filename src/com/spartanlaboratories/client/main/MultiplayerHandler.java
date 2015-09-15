@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 
 import com.spartanlaboratories.graphics.ConnectionHandler;
 import com.spartanlaboratories.graphics.Input;
-import com.spartanlaboratories.measurements.Location;
 
 public class MultiplayerHandler implements ConnectionHandler{
 	private PrintWriter out;

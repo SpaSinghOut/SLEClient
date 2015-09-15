@@ -21,10 +21,9 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/SLEGraphics V1.2 (S)/ogl/slick.jar"/>
-	<classpathentry kind="lib" path="lib/SLEGraphics V1.2 (S)/SLEGraphics.jar">
+	<classpathentry combineaccessrules="false" kind="src" path="/SLEGraphicsModule">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:platform:/resource/SLEClient/lib/SLEGraphics%20V1.2%20(S)/SLEGraphics.jar!/doc"/>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SLEClient/lib/SLEGraphics V1.2 (S)/native/windows"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="SLEGraphicsModule/native/windows"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
