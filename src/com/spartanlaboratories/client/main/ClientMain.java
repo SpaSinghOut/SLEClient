@@ -23,7 +23,7 @@ public class ClientMain {
 	public static void main(String[] args){
 		try (
 			// The socket itself
-		    Socket socket = new Socket("BigGreenMasheen", 7000);
+		    //Socket socket = new Socket("IllegalAlienware", 7000);
 			// The writer that is going to write to the socket
 		    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
 			// The reader that is going to read from the socket
