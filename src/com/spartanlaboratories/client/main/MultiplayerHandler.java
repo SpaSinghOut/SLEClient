@@ -2,6 +2,7 @@ package com.spartanlaboratories.client.main;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import com.spartanlaboratories.graphics.ConnectionHandler;
 import com.spartanlaboratories.graphics.Input;
@@ -17,29 +18,50 @@ public class MultiplayerHandler implements ConnectionHandler{
 		PRESS, RELEASE, FULL,;
 	}
 	private void sendValues(Object... data){
-		String[] strings = new String[data.length];
-		for(int i = 0; i < data.length;i++)
-			strings[i] = data[i].toString();
-		sendValues(strings);
+		sendValues(getContents(data));
+	}
+	private String[] getContents(Object[] array) {
+		ArrayList<String> list = new ArrayList<String>();
+		for(int i = 0; i < array.length; i++)
+			if(!Object[].class.isAssignableFrom(array[i].getClass()))
+				list.add(array[i].toString());
+			else
+				for(String s: getContents(((Object[])array[i])))
+					list.add(s);
+		return list.toArray(new String[list.size()]);
 	}
 	private synchronized void sendValues(String... data){
 		out.println("input");
 		for(String s: data)out.println(s);
 	}
+	private void sendPhysicalInput(Object... data) {
+		sendValues("physical", data);
+	}
+	private void sendVirtualInput(Object... data) {
+		sendValues("virtual", data);
+	}
 	@Override
 	public void notifyOfMouseWheel(Input input) {
-		sendValues("wheel", input.button);
+		sendPhysicalInput("wheel", input.button);
 	}
 	@Override
 	public void notifyOfMouseLocation(Input input) {
-		sendValues("mouse location", input.location);
+		sendPhysicalInput("mouse location", input.location);
 	}
 	@Override
 	public void notifyOfKeyPress(Input input) {
-		sendValues("key", input.button);
+		sendPhysicalInput("key", input.button);
 	}
 	@Override
 	public void notifyOfMouseClick(Input input) {
-		sendValues("click", input.button, input.type);
+		sendPhysicalInput("click", input.button, input.type);
+	}
+	@Override
+	public void notifyOfButtonClick(Input input, String... buttonData) {
+		sendVirtualInput("button", input.button, "none", buttonData.length, buttonData);
+	}
+	@Override
+	public String getStat(String stat) {
+		return null;
 	}
 }

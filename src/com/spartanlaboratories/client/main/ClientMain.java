@@ -13,58 +13,70 @@ import com.spartanlaboratories.util.Tracker;
 
 public class ClientMain {
 	private static final int quadInfoLines = 18;
-	static Gui gui;
-	static Quad quad = initializeQuad();
-	static int quadInfoTracer = 0;
-	static int xDisplay, yDisplay;
-	static long tickRate = 60;
-	static Tracker tracker = new Tracker();
-	static boolean running;
+	protected static Gui gui;
+	Quad quad = initializeQuad();
+	int quadInfoTracer = 0;
+	int xDisplay, yDisplay;
+	long tickRate = 60;
+	Tracker tracker = new Tracker();
+	boolean running;
 	public static void main(String[] args){
-		try (
-			// The socket itself
-		    //Socket socket = new Socket("IllegalAlienware", 7000);
-			// The writer that is going to write to the socket
-		    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-			// The reader that is going to read from the socket
-		    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		){
-			sendScreenInfo(out);
-			gui = new Gui(new MultiplayerHandler(out,in), new Location(xDisplay, yDisplay));
-			trackerSetup();
-			running = true;
-			while(running){
-				if(readInfo(in)){
-					tracker.giveStartTime("tick");
-					gui.tick();
-					tracker.giveEndTime("tick");
-					tracker.giveStartTime("render");
-					gui.render();
-					tracker.giveEndTime("render");
-					tracker.giveStartTime("update");
-					gui.update();
-					tracker.giveEndTime("update");
-				}
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		new ClientMain().start();
 	}
-	private static void trackerSetup(){
+	protected ClientMain start() {
+		try (
+				// The socket itself
+			    Socket socket = new Socket("localhost", 7000);
+				// The writer that is going to write to the socket
+			    PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+				// The reader that is going to read from the socket
+			    BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			){
+				sendScreenInfo(out);
+				gui = new Gui(new MultiplayerHandler(out,in), new Location(xDisplay, yDisplay));
+				gui.setDisplayLevel("all");
+				trackerSetup();
+				clientSetup();
+				run(in);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		return this;
+	}
+	protected void clientSetup() {
+		
+	}
+	private void trackerSetup(){
 		tracker.addEntity("tick");
 		tracker.addEntity("render");
 		tracker.addEntity("update");
 		tracker.addEntity("polling");
-		tracker.setNotifyPeriod(5);
+		tracker.setNotifyPeriod(15);
 		tracker.runInBackGround();
 	}
-	private static void sendScreenInfo(PrintWriter out){
+	private void run(BufferedReader in) {
+		running = true;
+		while(running){
+			if(readInfo(in)){
+				tracker.giveStartTime("tick");
+				gui.tick();
+				tracker.giveEndTime("tick");
+				tracker.giveStartTime("render");
+				gui.render();
+				tracker.giveEndTime("render");
+				tracker.giveStartTime("update");
+				gui.update();
+				tracker.giveEndTime("update");
+			}
+		}
+	}
+	private void sendScreenInfo(PrintWriter out){
 		out.println("screen info");
 		xDisplay = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode().getWidth();
-		yDisplay = (int)(0.98f * GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode().getHeight());
+		yDisplay = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDisplayMode().getHeight();
 		out.println(new Location(xDisplay, yDisplay));
 	}
-	private static boolean readInfo(BufferedReader in){
+	private boolean readInfo(BufferedReader in){
 		tracker.giveStartTime("polling");
 		try{
 			while(in.ready())switch(in.readLine().toLowerCase()){
@@ -79,7 +91,10 @@ public class ClientMain {
 				tracker.giveEndTime("polling");
 				return true;
 			case "load texture": case "loadtexture":
-				gui.loadTexture(in.readLine());
+				String textureName = in.readLine();
+				System.out.println("Loading texture: " + textureName);
+				gui.loadTexture(textureName);
+				System.out.println();
 				break;
 			}
 		}
@@ -89,7 +104,7 @@ public class ClientMain {
 		tracker.giveEndTime("polling");
 		return false;
 	}
-	private static void processQuadInfo(String quadInfo){
+	private void processQuadInfo(String quadInfo){
 		switch(++quadInfoTracer){
 		case 1:
 			quad.quadValues[0].x = Double.parseDouble(quadInfo);
@@ -150,10 +165,10 @@ public class ClientMain {
 				System.out.println("incorrect quad info slot");
 		}
 	}
-	private static void sendQuadInfo(Quad quad){
+	private void sendQuadInfo(Quad quad){
 		gui.addQuad(quad);
 	}
-	private static Quad initializeQuad(){
+	private Quad initializeQuad(){
 		Quad quad = new Quad(new Location[4], new Location[4]);
 		for(int i = 0; i < 4; i++){
 			quad.quadValues[i] = new Location();
@@ -161,4 +176,5 @@ public class ClientMain {
 		}
 		return quad;
 	}
+	
 }
